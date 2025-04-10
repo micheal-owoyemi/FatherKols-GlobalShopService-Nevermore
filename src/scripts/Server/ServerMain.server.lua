@@ -7,6 +7,6 @@ local loader = ServerScriptService.FatherKolsGlobalShopServiceNevermore:FindFirs
 local require = require(loader).bootstrapGame(ServerScriptService.FatherKolsGlobalShopServiceNevermore)
 
 local serviceBag = require("ServiceBag").new()
-serviceBag:GetService(require("FatherKolsGlobalShopServiceNevermoreService"))
+serviceBag:GetService(require("GlobalShopService"))
 serviceBag:Init()
 serviceBag:Start()
