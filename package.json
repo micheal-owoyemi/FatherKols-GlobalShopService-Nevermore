@@ -15,7 +15,8 @@
     "@quenty/loader": "^10.8.3",
     "@quenty/maid": "^3.4.3",
     "@quenty/observablecollection": "^12.20.3",
-    "@quenty/servicebag": "^11.11.4"
+    "@quenty/servicebag": "^11.11.4",
+    "@quenty/signal": "^7.10.3"
   },
   "publishConfig": {
     "access": "restricted"

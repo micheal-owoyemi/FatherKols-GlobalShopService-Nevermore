@@ -6,6 +6,7 @@
 local require = require(script.Parent.loader).load(script)
 local Maid = require("Maid")
 local ObservableList = require("ObservableList")
+local Signal = require("Signal")
 
 -- Roblox Services
 local Players = game:GetService("Players")

@@ -5,15 +5,15 @@
 -- Nevermore Dependencies
 local require = require(script.Parent.loader).load(script)
 local Maid = require("Maid")
-local ObservableList = require("ObservableList")
+local Signal = require("Signal")
 
 -- Roblox Services
 local HTTPService = game:GetService("HttpService")
 
-local SyncedTimeService = {}
-SyncedTimeService.ServiceName = "SyncedTimeService"
+local SyncTimeService = {}
+SyncTimeService.ServiceName = "SyncTimeService"
 
-function SyncedTimeService:Init(serviceBag)
+function SyncTimeService:Init(serviceBag)
 	assert(not self._serviceBag, "Already initialized")
 	self._serviceBag = assert(serviceBag, "No serviceBag")
 
@@ -21,11 +21,11 @@ function SyncedTimeService:Init(serviceBag)
 	self._serviceBag:GetService(require("CmdrService"))
 
 	-- Internal
-	self._serviceBag:GetService(require("SyncedTimeServiceTranslator"))
+	self._serviceBag:GetService(require("SyncTimeServiceTranslator"))
 end
 
-function SyncedTimeService:Start()
-	print("Starting SyncedTimeService")
+function SyncTimeService:Start()
+	print("Starting SyncTimeService")
 end
 
-return SyncedTimeService
+return SyncTimeService
