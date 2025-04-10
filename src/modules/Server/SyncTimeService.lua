@@ -9,6 +9,7 @@ local Signal = require("Signal")
 
 -- Roblox Services
 local HTTPService = game:GetService("HttpService")
+
 -- Constants
 local monthStrMap = {
 	Jan=1,
@@ -24,6 +25,11 @@ local monthStrMap = {
 	Nov=11,
 	Dec=12
 }
+
+-- Configuration: Set offset in hours from UTC
+local HOUR_OFFSET = 5 -- CST  
+local OFFSET_SECONDS = HOUR_OFFSET * 3600
+local DAILY_SHOP_REFRESH_TIME = 60 * 60 * 24 -- 24 hours
 
 -- Service Functions
 local SyncTimeService = {}
@@ -44,7 +50,7 @@ function SyncTimeService:Init(serviceBag)
 	self._currentTime = nil
 	self._hasInit = nil
 
-	-- Signal that fires with the new day value every time the day changes.
+	-- Signals
 	self.DayChanged = Signal.new()
 	self._maid:GiveTask(self.DayChanged)
 
@@ -62,6 +68,14 @@ end
 
 function SyncTimeService:GetCurrentTime()
 	return self._currentTime
+end
+
+function SyncTimeService:GetCurrentMinute()
+	
+end
+
+function SyncTimeService:GetCurrentDay()
+	
 end
 
 -- Grabs the current time from google.com and sets the current time to the server time
