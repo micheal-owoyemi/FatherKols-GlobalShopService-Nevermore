@@ -1,0 +1,22 @@
+{
+  "name": "fatherkolsglobalshopservicenevermore",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [
+    "Roblox",
+    "Nevermore",
+    "Lua"
+  ],
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@quenty/binder": "^14.19.3",
+    "@quenty/clienttranslator": "^14.19.3",
+    "@quenty/cmdrservice": "^13.22.3",
+    "@quenty/loader": "^10.8.3",
+    "@quenty/maid": "^3.4.3",
+    "@quenty/servicebag": "^11.11.4"
+  },
+  "publishConfig": {
+    "access": "restricted"
+  }
+}

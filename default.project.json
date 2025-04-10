@@ -1,0 +1,28 @@
+{
+  "name": "FatherKolsGlobalShopServiceNevermore",
+  "globIgnorePaths": [ "**/.package-lock.json" ],
+  "tree": {
+    "$className": "DataModel",
+    "ServerScriptService": {
+      "FatherKolsGlobalShopServiceNevermore": {
+        "$className": "Folder",
+        "game": {
+          "$path": "src/modules"
+        },
+        "node_modules": {
+          "$path": "node_modules"
+        }
+      },
+      "FatherKolsGlobalShopServiceNevermoreScripts": {
+        "$path": "src/scripts/Server"
+      }
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "FatherKolsGlobalShopServiceNevermoreScripts": {
+          "$path": "src/scripts/Client"
+        }
+      }
+    }
+  }
+}
