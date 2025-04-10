@@ -1,5 +1,5 @@
 --[=[
-	@class GlobalShopService
+	@class SyncedTimeService
 ]=]
 
 -- Nevermore Dependencies
@@ -8,12 +8,12 @@ local Maid = require("Maid")
 local ObservableList = require("ObservableList")
 
 -- Roblox Services
-local Players = game:GetService("Players")
+local HTTPService = game:GetService("HttpService")
 
-local GlobalShopService = {}
-GlobalShopService.ServiceName = "GlobalShopService"
+local SyncedTimeService = {}
+SyncedTimeService.ServiceName = "SyncedTimeService"
 
-function GlobalShopService:Init(serviceBag)
+function SyncedTimeService:Init(serviceBag)
 	assert(not self._serviceBag, "Already initialized")
 	self._serviceBag = assert(serviceBag, "No serviceBag")
 
@@ -21,11 +21,11 @@ function GlobalShopService:Init(serviceBag)
 	self._serviceBag:GetService(require("CmdrService"))
 
 	-- Internal
-	self._serviceBag:GetService(require("GlobalShopServiceTranslator"))
+	self._serviceBag:GetService(require("SyncedTimeServiceTranslator"))
 end
 
-function GlobalShopService:Start()
-	print("Starting GlobalShopService")
+function SyncedTimeService:Start()
+	print("Starting SyncedTimeService")
 end
 
-return GlobalShopService
+return SyncedTimeService

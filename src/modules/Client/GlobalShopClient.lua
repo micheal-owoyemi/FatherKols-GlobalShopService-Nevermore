@@ -4,6 +4,7 @@
 
 local require = require(script.Parent.loader).load(script)
 local Maid = require("Maid")
+local ObservableList = require("ObservableList")
 
 local GlobalShopClient = {}
 GlobalShopClient.ServiceName = "GlobalShopClient"

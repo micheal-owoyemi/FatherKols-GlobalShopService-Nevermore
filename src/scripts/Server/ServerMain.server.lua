@@ -8,5 +8,6 @@ local require = require(loader).bootstrapGame(ServerScriptService.FatherKolsGlob
 
 local serviceBag = require("ServiceBag").new()
 serviceBag:GetService(require("GlobalShopService"))
+serviceBag:GetService(require("SyncedTimeService"))
 serviceBag:Init()
 serviceBag:Start()
