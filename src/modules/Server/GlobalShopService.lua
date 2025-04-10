@@ -20,6 +20,7 @@ function GlobalShopService:Init(serviceBag)
 
 	-- External
 	self._serviceBag:GetService(require("CmdrService"))
+	self._serviceBag:GetService(require("SyncTimeService"))
 
 	-- Internal
 	self._serviceBag:GetService(require("GlobalShopServiceTranslator"))
