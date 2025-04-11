@@ -14,9 +14,6 @@ function GlobalShopClient:Init(serviceBag)
 	self._serviceBag = assert(serviceBag, "No serviceBag")
 	self._maid = Maid.new()
 
-	-- External
-	self._serviceBag:GetService(require("CmdrServiceClient"))
-
 	-- Internal
 	self._serviceBag:GetService(require("GlobalShopServiceTranslator"))
 end

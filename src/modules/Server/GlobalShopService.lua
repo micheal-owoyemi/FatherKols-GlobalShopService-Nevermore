@@ -5,7 +5,6 @@
 -- Nevermore Dependencies
 local require = require(script.Parent.loader).load(script)
 local Maid = require("Maid")
-local ObservableList = require("ObservableList")
 local ObservableMap = require("ObservableMap")
 local Signal = require("Signal")
 
@@ -27,12 +26,14 @@ local ItemDataBase = {
 	},
 }
 
--- Pack prices for refunds
+-- Item Prices
 local ITEM_PRICES = {
-    CommonPack    = 100,
-    RarePack      = 300,
-    LegendaryPack = 1000
+    Common = 100,
+    Rare = 300,
+    Legendary = 1000
 }
+
+
 
 -- Service Functions
 local GlobalShopService = {}
@@ -44,96 +45,133 @@ function GlobalShopService:Init(serviceBag)
 	self._maid = Maid.new()
 
 	-- External
-	self._serviceBag:GetService(require("CmdrService"))
-	self._serviceBag:GetService(require("SyncTimeService"))
+	self._syncTimeService = self._serviceBag:GetService(require("SyncTimeService"))
 
 	-- Internal
 	self._serviceBag:GetService(require("GlobalShopServiceTranslator"))
 
 	-- Signals
-	self.ItemAdded = Signal.new()      -- Fired when a new item is added to a player's inventory
-	self.ItemDuplicate = Signal.new()  -- Fired when a duplicate item is encountered
-
-	self._maid:GiveTask(self.ItemAdded)
-	self._maid:GiveTask(self.ItemDuplicate)
-
-	-- Observable lists
-	self._currentShopItems = ObservableList.new()
-	self._maid:GiveTask(self._currentShopItems)
+	self.ShopUpdated = Signal.new()      -- Fired when the shop is updated
+	self._maid:GiveTask(self.ShopUpdated)
 
 	-- DataStores
 	self._shopDataStore = DataStoreService:GetDataStore("GlobalShopState")      -- stores current shop rotation (items + timestamp)
 	self._playerDataStore = DataStoreService:GetDataStore("PlayerInventories")  -- stores each player's inventory (keyed by userId)
- 
-	-- Maps
-	self._playerInventories = {}  -- map of Player -> ObservableList (their inventory)
-	self._playerMaids = {}        -- map of Player -> Maid (for cleaning up that player's connections)
+
+	-- Constants
+	self._currentShopItems = {}
+
 end
 
 function GlobalShopService:Start()
-	print("Starting GlobalShopService")
+    -- Run the cycle retrieval and refresh asynchronously
+    task.spawn(function()
+        local currentCycle = self._syncTimeService:GetCurrentCycle()
+        local delayTime = 1
+        local maxDelay = 16
 
+        while currentCycle == nil do
+            print("[GlobalShopService] Current cycle is nil, retrying in", delayTime, "seconds...")
+            task.wait(delayTime)
+            currentCycle = self._syncTimeService:GetCurrentCycle()
+            delayTime = math.min(delayTime * 2, maxDelay)
+        end
 
-	local dailySeed1 = 1
-	local dailySeed2 = 2
-	local dailySeed3 = 3
+        -- Once we have a valid cycle, immediately refresh the shop
+        self:_generateDailyItems(currentCycle)
+		print("[GlobalShopService] Current cycle is", currentCycle)
+		print(self._currentShopItems._map)
+    end)
 
-	print(self:_generateDailyItems(dailySeed1)._map)
-	print(self:_generateDailyItems(dailySeed2)._map)
-	print(self:_generateDailyItems(dailySeed3)._map)
+	-- Listen for cycle changes and refresh the shop accordingly (In this case, every 12 hours)
+	self._maid:GiveTask(self._syncTimeService.CycleChanged:Connect(function(newCycle)
+		self:_generateDailyItems(newCycle)
+		print("[GlobalShopService] Cycle changed to", newCycle)
+		print(self._currentShopItems._map)
+	end))
 end
 
-function GlobalShopService:_generateDailyItems(daySeed: number)
-    -- Create a seeded random number generator so that every server using the same daySeed produces identical results.
-    local rng = Random.new(daySeed)
-    -- Create a new ObservableMap instance.
-
+function GlobalShopService:_generateDailyItems(cycleSeed: number) -- 6 item count hard-coded
+    local rng = Random.new(cycleSeed)
     local itemsMap = ObservableMap.new()
-    
-    -- List of available item types.
     local types = { "Emote", "Accessory" }
     
-    -- Helper function: Given a type and rarity, pick a random item from ItemDataBase.
-    local function chooseItem(itemType: string, rarity: string)
-        local pool = ItemDataBase[itemType] and ItemDataBase[itemType][rarity]
-        if pool and #pool > 0 then
-            return pool[rng:NextInteger(1, #pool)]
+    -- Helper Functions
+
+	--Copy the pool and return a new list
+    local function copyPool(pool)
+        local copy = {}
+        for i, item in (pool) do
+            table.insert(copy, item)
         end
-        return nil
+        return copy
     end
+
+    --[[ Helper: Given a type and rarity, pick a random item from a temporary pool
+	and remove it from that pool to prevent re-selection]]
+	local function chooseItemFromPool(pool)
+		if pool and #pool > 0 then
+			local index = rng:NextInteger(1, #pool)
+			local chosenItem = pool[index]
+			table.remove(pool, index)  -- Remove the chosen item so it cannot be selected again.
+			return chosenItem
+		end
+		return nil
+	end
     
     local index = 1
+
+    -- For each type, create temporary copies of the rarity pools.
+    local commonPools = {}
+    local rarePools = {}
+    local legendaryPools = {}
+
+    for _, itemType in (types) do
+        commonPools[itemType] = copyPool(ItemDataBase[itemType].Common)
+        rarePools[itemType] = copyPool(ItemDataBase[itemType].Rare)
+        legendaryPools[itemType] = copyPool(ItemDataBase[itemType].Legendary)
+    end
 
     -- Generate 3 Common items
     for i = 1, 3 do
         local typeIndex = rng:NextInteger(1, #types)
         local chosenType = types[typeIndex]
-        local chosenItem = chooseItem(chosenType, "Common")
-        itemsMap:Set(index, { Type = chosenType, Rarity = "Common", Item = chosenItem })
-        index = index + 1
+        local chosenItem = chooseItemFromPool(commonPools[chosenType])
+        if chosenItem then
+            itemsMap:Set(index, { Type = chosenType, Rarity = "Common", Item = chosenItem })
+            index = index + 1
+        end
     end
 
     -- Generate 2 Rare items
     for i = 1, 2 do
         local typeIndex = rng:NextInteger(1, #types)
         local chosenType = types[typeIndex]
-        local chosenItem = chooseItem(chosenType, "Rare")
-        itemsMap:Set(index, { Type = chosenType, Rarity = "Rare", Item = chosenItem })
-        index = index + 1
+        local chosenItem = chooseItemFromPool(rarePools[chosenType])
+        if chosenItem then
+            itemsMap:Set(index, { Type = chosenType, Rarity = "Rare", Item = chosenItem })
+            index = index + 1
+        end
     end
 
-    -- Generate 1 item: Rare or Legendary (25%)
+    -- Generate 1 item: Rare or Legendary(25%)
     local chance = rng:NextNumber(0, 1)
     local finalRarity = (chance <= 0.25) and "Legendary" or "Rare"
     local typeIndex = rng:NextInteger(1, #types)
     local chosenType = types[typeIndex]
-    local chosenItem = chooseItem(chosenType, finalRarity)
-    itemsMap:Set(index, { Type = chosenType, Rarity = finalRarity, Item = chosenItem })
+    local chosenItem = nil
 
-    return itemsMap
+    if finalRarity == "Legendary" then
+        chosenItem = chooseItemFromPool(legendaryPools[chosenType])
+    else
+        chosenItem = chooseItemFromPool(rarePools[chosenType])
+    end
+    if chosenItem then
+        itemsMap:Set(index, { Type = chosenType, Rarity = finalRarity, Item = chosenItem })
+    end
+
+    self._currentShopItems = itemsMap
 end
-
-
 
 
 return GlobalShopService
